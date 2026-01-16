@@ -1,0 +1,49 @@
+{% extends 'analyzer/base.html' %}
+
+{% block title %}Website Analysis - Website Feature Finder{% endblock %}
+
+{% block content %}
+<h2>Website Analysis</h2>
+<p>Enter a website URL to analyze and extract features.</p>
+
+{% if error_message %}
+<div style="background-color: #fee; color: #c33; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+    <strong>Error:</strong> {{ error_message }}
+</div>
+{% endif %}
+
+{% if success_message %}
+<div style="background-color: #efe; color: #3c3; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+    {{ success_message }}
+</div>
+{% endif %}
+
+<form method="post" action="{% url 'website_analysis' %}" style="margin-top: 20px;">
+    {% csrf_token %}
+    <div style="display: flex; gap: 10px; align-items: center;">
+        <label for="website_url" style="font-weight: bold;">Website URL:</label>
+        <input 
+            type="url" 
+            id="website_url" 
+            name="website_url" 
+            placeholder="https://example.com" 
+            required
+            style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 3px; font-size: 14px;"
+            value="{{ session.website_url|default:'' }}"
+        >
+        <button 
+            type="submit" 
+            style="padding: 10px 20px; background-color: #3498db; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 14px; font-weight: bold;"
+        >
+            Analyze
+        </button>
+    </div>
+</form>
+
+{% if session.website_url %}
+<div style="margin-top: 20px; padding: 15px; background-color: #f9f9f9; border-radius: 5px;">
+    <strong>Last analyzed:</strong> <a href="{{ session.website_url }}" target="_blank">{{ session.website_url }}</a>
+</div>
+{% endif %}
+{% endblock %}
+

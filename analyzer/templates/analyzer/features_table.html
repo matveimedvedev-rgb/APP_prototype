@@ -1,0 +1,277 @@
+{% extends 'analyzer/base.html' %}
+
+{% block title %}Features Table - Website Feature Finder{% endblock %}
+
+{% block extra_css %}
+<style>
+    .features-table-container {
+        margin-top: 20px;
+    }
+    table.features-table {
+        width: 100%;
+        border-collapse: collapse;
+        background-color: white;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    table.features-table th {
+        background-color: #34495e;
+        color: white;
+        padding: 12px;
+        text-align: left;
+        font-weight: bold;
+    }
+    table.features-table td {
+        padding: 10px;
+        border-bottom: 1px solid #ddd;
+    }
+    table.features-table tr:hover {
+        background-color: #f5f5f5;
+    }
+    table.features-table input {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 3px;
+        font-size: 14px;
+        box-sizing: border-box;
+    }
+    table.features-table input:focus {
+        outline: none;
+        border-color: #3498db;
+    }
+    .action-buttons {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+    }
+    .btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 3px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: bold;
+        transition: background-color 0.3s;
+    }
+    .btn-primary {
+        background-color: #3498db;
+        color: white;
+    }
+    .btn-primary:hover {
+        background-color: #2980b9;
+    }
+    .btn-success {
+        background-color: #27ae60;
+        color: white;
+    }
+    .btn-success:hover {
+        background-color: #229954;
+    }
+    .btn-danger {
+        background-color: #e74c3c;
+        color: white;
+    }
+    .btn-danger:hover {
+        background-color: #c0392b;
+    }
+    .btn-small {
+        padding: 5px 10px;
+        font-size: 12px;
+    }
+    .empty-message {
+        padding: 20px;
+        text-align: center;
+        color: #666;
+        background-color: #f9f9f9;
+        border-radius: 5px;
+    }
+    .message {
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+    }
+    .message-success {
+        background-color: #efe;
+        color: #3c3;
+    }
+    .message-error {
+        background-color: #fee;
+        color: #c33;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<h2>Features Table</h2>
+<p>Manage your extracted features. Add, edit, or delete features below.</p>
+
+{% if messages %}
+    {% for message in messages %}
+    <div class="message {% if message.tags == 'error' %}message-error{% else %}message-success{% endif %}">
+        {{ message }}
+    </div>
+    {% endfor %}
+{% endif %}
+
+{% if success_message %}
+<div class="message message-success">
+    {{ success_message }}
+</div>
+{% endif %}
+
+{% if error_message %}
+<div class="message message-error">
+    <strong>Error:</strong> {{ error_message }}
+</div>
+{% endif %}
+
+<div class="features-table-container">
+    <form method="post" action="{% url 'features_table' %}" id="features-form">
+        {% csrf_token %}
+        <table class="features-table">
+            <thead>
+                <tr>
+                    <th style="width: 5%;">#</th>
+                    <th style="width: 85%;">Feature</th>
+                    <th style="width: 10%;">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="features-tbody">
+                {% for feature in features %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>
+                        <input type="text" name="features" value="{{ feature }}" class="feature-input" required>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-danger btn-small" onclick="deleteRow(this)">Delete</button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr id="empty-row">
+                    <td colspan="3" class="empty-message">
+                        No features yet. Click "Add Row" to start adding features.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <div class="action-buttons">
+            <button type="button" class="btn btn-primary" onclick="addRow()">Add Row</button>
+            <button type="submit" class="btn btn-success">Save All</button>
+        </div>
+    </form>
+    
+    {% if features_count > 0 and session.website_url %}
+    <div style="margin-top: 30px; padding: 20px; background-color: #f9f9f9; border-radius: 5px;">
+        <h3>AI Pages Generation</h3>
+        <p>Generate AI-oriented pages based on your website and features.</p>
+        {% if ai_pages_count > 0 %}
+        <p style="color: #27ae60; font-weight: bold;">✓ {{ ai_pages_count }} AI page(s) already generated</p>
+        <ul style="margin-top: 10px;">
+            {% for page in ai_pages %}
+            <li><a href="{% url 'ai_page' page.slug %}" target="_blank">{{ page.title }}</a></li>
+            {% endfor %}
+        </ul>
+        <form method="post" action="{% url 'delete_all_ai_pages' %}" style="margin-top: 15px; display: inline-block;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete all AI pages? This action cannot be undone.');">Delete All Pages</button>
+        </form>
+        {% endif %}
+        <form method="post" action="{% url 'generate_ai_pages' %}" id="generate-pages-form" style="margin-top: 15px;">
+            {% csrf_token %}
+            <div style="margin-bottom: 15px;">
+                <label for="pages-count" style="display: block; margin-bottom: 8px; font-weight: bold;">
+                    Number of pages to generate: <span id="pages-count-value">50</span>
+                </label>
+                <input type="range" id="pages-count" name="pages_count" min="10" max="300" value="50" step="10" 
+                       style="width: 100%; max-width: 500px;"
+                       oninput="document.getElementById('pages-count-value').textContent = this.value;">
+                <div style="display: flex; justify-content: space-between; width: 100%; max-width: 500px; margin-top: 5px; font-size: 12px; color: #666;">
+                    <span>10</span>
+                    <span>300</span>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">{% if ai_pages_count > 0 %}Regenerate AI Pages{% else %}Generate AI Pages{% endif %}</button>
+        </form>
+    </div>
+    {% elif features_count == 0 %}
+    <div style="margin-top: 30px; padding: 15px; background-color: #fff3cd; border-radius: 5px; color: #856404;">
+        <strong>Note:</strong> Add features and analyze a website first before generating AI pages.
+    </div>
+    {% elif not session.website_url %}
+    <div style="margin-top: 30px; padding: 15px; background-color: #fff3cd; border-radius: 5px; color: #856404;">
+        <strong>Note:</strong> Analyze a website first before generating AI pages.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let rowCounter = {{ features_count|default:0 }};
+
+    function addRow() {
+        const tbody = document.getElementById('features-tbody');
+        const emptyRow = document.getElementById('empty-row');
+        
+        if (emptyRow) {
+            emptyRow.remove();
+        }
+        
+        rowCounter++;
+        const newRow = document.createElement('tr');
+        newRow.innerHTML = `
+            <td>${rowCounter}</td>
+            <td>
+                <input type="text" name="features" value="" class="feature-input" placeholder="Enter feature..." required>
+            </td>
+            <td>
+                <button type="button" class="btn btn-danger btn-small" onclick="deleteRow(this)">Delete</button>
+            </td>
+        `;
+        tbody.appendChild(newRow);
+        
+        // Focus on the new input
+        const input = newRow.querySelector('.feature-input');
+        input.focus();
+    }
+
+    function deleteRow(button) {
+        const row = button.closest('tr');
+        const tbody = document.getElementById('features-tbody');
+        
+        row.remove();
+        
+        // If no rows left, show empty message
+        if (tbody.children.length === 0) {
+            const emptyRow = document.createElement('tr');
+            emptyRow.id = 'empty-row';
+            emptyRow.innerHTML = `
+                <td colspan="3" class="empty-message">
+                    No features yet. Click "Add Row" to start adding features.
+                </td>
+            `;
+            tbody.appendChild(emptyRow);
+        } else {
+            // Update row numbers
+            updateRowNumbers();
+        }
+    }
+
+    function updateRowNumbers() {
+        const rows = document.querySelectorAll('#features-tbody tr:not(#empty-row)');
+        rows.forEach((row, index) => {
+            row.querySelector('td:first-child').textContent = index + 1;
+        });
+        rowCounter = rows.length;
+    }
+
+    // Update row numbers on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        updateRowNumbers();
+    });
+</script>
+{% endblock %}
+

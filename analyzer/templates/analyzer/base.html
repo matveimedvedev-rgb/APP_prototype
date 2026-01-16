@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Website Feature Finder{% endblock %}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .nav {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .nav a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            background-color: #34495e;
+            border-radius: 3px;
+            transition: background-color 0.3s;
+        }
+        .nav a:hover {
+            background-color: #1a252f;
+        }
+        .nav a.active {
+            background-color: #3498db;
+        }
+        .content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .session-info {
+            background-color: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        .session-info strong {
+            color: #2c3e50;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="header">
+        <h1>Website Feature Finder</h1>
+        <nav class="nav">
+            <a href="{% url 'website_analysis' %}" {% if request.resolver_match.url_name == 'website_analysis' %}class="active"{% endif %}>Website Analysis</a>
+            <a href="{% url 'features_table' %}" {% if request.resolver_match.url_name == 'features_table' %}class="active"{% endif %}>Features Table</a>
+            <a href="{% url 'findability' %}" {% if request.resolver_match.url_name == 'findability' %}class="active"{% endif %}>Findability</a>
+        </nav>
+    </div>
+    
+    <div class="content">
+        <div class="session-info">
+            <strong>Session ID:</strong> {{ session_id }}<br>
+            <strong>Features:</strong> {{ features_count }}<br>
+            <strong>AI Pages:</strong> {{ ai_pages_count }}<br>
+            <strong>Findability Report:</strong> {% if has_findability_report %}Yes{% else %}No{% endif %}
+        </div>
+        
+        {% block content %}{% endblock %}
+    </div>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
+

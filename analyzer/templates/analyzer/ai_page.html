@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% if is_ai_crawler %}
+    <meta name="robots" content="index, follow">
+    {% else %}
+    <meta name="robots" content="noindex, nofollow">
+    {% endif %}
+    <title>{{ page.title }} - AI Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+            line-height: 1.6;
+        }
+        .header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .content h1, .content h2, .content h3 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        .content p {
+            margin-bottom: 1em;
+        }
+        .content ul, .content ol {
+            margin-bottom: 1em;
+            padding-left: 2em;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 3px;
+        }
+        .back-link:hover {
+            background-color: #2980b9;
+        }
+        .meta-info {
+            font-size: 12px;
+            color: #666;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>{{ page.title }}</h1>
+        <p style="margin: 0; opacity: 0.9;">AI-Generated Page</p>
+    </div>
+    
+    <div class="content">
+        {{ page.content|safe }}
+        
+        <div class="meta-info">
+            <p><strong>Note:</strong> This page is optimized for AI crawlers and LLM consumption. {% if is_ai_crawler %}Detected as AI crawler - page is indexable.{% else %}Human preview mode - page is not indexed by traditional search engines.{% endif %}</p>
+            <a href="{% url 'features_table' %}" class="back-link">← Back to Features Table</a>
+        </div>
+    </div>
+</body>
+</html>
+

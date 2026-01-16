@@ -1,0 +1,211 @@
+{% extends 'analyzer/base.html' %}
+
+{% block title %}Findability - Website Feature Finder{% endblock %}
+
+{% block extra_css %}
+<style>
+    .findability-section {
+        margin-top: 20px;
+        padding: 20px;
+        background-color: #f9f9f9;
+        border-radius: 5px;
+    }
+    .report-container {
+        margin-top: 20px;
+        padding: 20px;
+        background-color: white;
+        border-radius: 5px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .score-display {
+        font-size: 48px;
+        font-weight: bold;
+        color: #2c3e50;
+        text-align: center;
+        padding: 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
+    .score-label {
+        font-size: 18px;
+        opacity: 0.9;
+        margin-top: 10px;
+    }
+    .report-section {
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #eee;
+    }
+    .report-section:last-child {
+        border-bottom: none;
+    }
+    .report-section h3 {
+        color: #2c3e50;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #3498db;
+    }
+    .report-section ul, .report-section ol {
+        margin-left: 20px;
+        line-height: 1.8;
+    }
+    .report-section li {
+        margin-bottom: 8px;
+    }
+    .feature-note {
+        padding: 10px;
+        margin-bottom: 10px;
+        background-color: #f8f9fa;
+        border-left: 4px solid #3498db;
+        border-radius: 3px;
+    }
+    .feature-note strong {
+        color: #2c3e50;
+    }
+    .message {
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+    }
+    .message-success {
+        background-color: #efe;
+        color: #3c3;
+    }
+    .message-error {
+        background-color: #fee;
+        color: #c33;
+    }
+    .message-info {
+        background-color: #e3f2fd;
+        color: #1976d2;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<h2>Findability Analysis</h2>
+<p>Analyze how well your website can be found by users searching for your features.</p>
+
+{% if messages %}
+    {% for message in messages %}
+    <div class="message {% if message.tags == 'error' %}message-error{% elif message.tags == 'info' %}message-info{% else %}message-success{% endif %}">
+        {{ message }}
+    </div>
+    {% endfor %}
+{% endif %}
+
+{% if features_count == 0 or not session.website_url %}
+<div class="findability-section">
+    <div class="message message-info">
+        <strong>Note:</strong> 
+        {% if features_count == 0 %}
+        Please add features first before running findability analysis.
+        {% else %}
+        Please analyze a website first before running findability analysis.
+        {% endif %}
+    </div>
+</div>
+{% else %}
+<div class="findability-section">
+    <h3>Run Findability Analysis</h3>
+    <p>This will generate simulated user queries and analyze how well your website content supports them.</p>
+    <form method="post" action="{% url 'run_findability_analysis' %}" style="margin-top: 15px;">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary" style="padding: 12px 24px; font-size: 16px;">
+            Run Findability Analysis
+        </button>
+    </form>
+</div>
+{% endif %}
+
+{% if has_findability_report and findability_report %}
+<div class="report-container">
+    <h2>Findability Report</h2>
+    
+    {% if findability_report.overall_score is not None %}
+    <div class="score-display">
+        {{ findability_report.overall_score }}/100
+        <div class="score-label">Overall Findability Score</div>
+    </div>
+    {% endif %}
+    
+    {% if findability_report.per_feature_notes %}
+    <div class="report-section">
+        <h3>Per-Feature Findability Notes</h3>
+        {% for note in findability_report.per_feature_notes %}
+        <div class="feature-note">
+            <strong>{{ note.feature|default:"Feature" }}:</strong> {{ note.note|default:note }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    {% if findability_report.content_gaps %}
+    <div class="report-section">
+        <h3>Content Gaps</h3>
+        {% if findability_report.content_gaps|length > 0 %}
+        <ul>
+            {% for gap in findability_report.content_gaps %}
+            <li>{{ gap }}</li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p>No significant content gaps identified.</p>
+        {% endif %}
+    </div>
+    {% endif %}
+    
+    {% if findability_report.recommendations %}
+    <div class="report-section">
+        <h3>Recommendations</h3>
+        {% if findability_report.recommendations.pages_to_add %}
+        <h4>Pages/Sections to Add:</h4>
+        <ul>
+            {% for rec in findability_report.recommendations.pages_to_add %}
+            <li>{{ rec }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        
+        {% if findability_report.recommendations.faq_suggestions %}
+        <h4>FAQ Suggestions:</h4>
+        <ul>
+            {% for faq in findability_report.recommendations.faq_suggestions %}
+            <li>{{ faq }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+    </div>
+    {% endif %}
+    
+    {% if findability_report.wording_improvements %}
+    <div class="report-section">
+        <h3>Suggested Wording Improvements</h3>
+        <ul>
+            {% for improvement in findability_report.wording_improvements %}
+            <li>{{ improvement }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+    
+    {% if findability_report.simulated_queries %}
+    <div class="report-section">
+        <h3>Simulated User Queries Analyzed</h3>
+        <p style="color: #666; font-size: 14px;">{{ findability_report.simulated_queries|length }} queries were analyzed</p>
+        <details style="margin-top: 10px;">
+            <summary style="cursor: pointer; color: #3498db; font-weight: bold;">View all queries</summary>
+            <ul style="margin-top: 10px;">
+                {% for query in findability_report.simulated_queries %}
+                <li>{{ query }}</li>
+                {% endfor %}
+            </ul>
+        </details>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}
+
