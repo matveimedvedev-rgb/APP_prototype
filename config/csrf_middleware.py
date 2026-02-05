@@ -1,17 +1,17 @@
 """
-Custom CSRF middleware to handle Cloud Run dynamic domains.
-This automatically trusts Cloud Run *.run.app domains for CSRF.
+Custom middleware to handle Cloud Run dynamic domains for CSRF.
+This middleware runs before CSRF middleware and automatically adds Cloud Run origins.
 """
-from django.middleware.csrf import CsrfViewMiddleware
 from django.utils.deprecation import MiddlewareMixin
 
 
-class CloudRunCsrfMiddleware(MiddlewareMixin, CsrfViewMiddleware):
+class CloudRunCsrfMiddleware(MiddlewareMixin):
     """
-    Extends Django's CSrfViewMiddleware to automatically trust Cloud Run domains.
+    Middleware to automatically add Cloud Run domains to CSRF_TRUSTED_ORIGINS.
+    This should be placed before django.middleware.csrf.CsrfViewMiddleware.
     """
-    def process_view(self, request, callback, callback_args, callback_kwargs):
-        """Override to add Cloud Run origin to trusted origins."""
+    def process_request(self, request):
+        """Add Cloud Run origin to trusted origins before CSRF check."""
         # Get the origin from the request
         origin = request.META.get('HTTP_ORIGIN')
         if not origin:
@@ -24,17 +24,12 @@ class CloudRunCsrfMiddleware(MiddlewareMixin, CsrfViewMiddleware):
         # If it's a Cloud Run domain, add it to trusted origins
         if origin and '.run.app' in origin:
             from django.conf import settings
-            # Create a mutable copy if needed
+            # Dynamically add to trusted origins for this request
             if origin not in settings.CSRF_TRUSTED_ORIGINS:
-                # Use a thread-safe approach
-                import threading
-                if not hasattr(settings, '_csrf_trusted_origins_lock'):
-                    settings._csrf_trusted_origins_lock = threading.Lock()
-                
-                with settings._csrf_trusted_origins_lock:
-                    if origin not in settings.CSRF_TRUSTED_ORIGINS:
-                        settings.CSRF_TRUSTED_ORIGINS = list(settings.CSRF_TRUSTED_ORIGINS) + [origin]
+                # Convert to list if needed, then add
+                trusted_origins = list(settings.CSRF_TRUSTED_ORIGINS)
+                trusted_origins.append(origin)
+                settings.CSRF_TRUSTED_ORIGINS = trusted_origins
         
-        # Call parent middleware
-        return super().process_view(request, callback, callback_args, callback_kwargs)
+        return None  # Continue processing
 

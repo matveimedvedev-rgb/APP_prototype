@@ -66,7 +66,8 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'config.csrf_middleware.CloudRunCsrfMiddleware',  # Custom CSRF middleware for Cloud Run
+    'config.csrf_middleware.CloudRunCsrfMiddleware',  # Custom middleware to add Cloud Run origins
+    'django.middleware.csrf.CsrfViewMiddleware',  # Standard CSRF middleware
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
