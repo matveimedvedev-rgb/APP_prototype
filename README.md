@@ -1,4 +1,4 @@
-# Website Feature Finder
+# Webglazer
 
 A Django web application that analyzes websites, extracts features using OpenAI, and provides findability analysis to help improve how easily users can discover your website's capabilities.
 

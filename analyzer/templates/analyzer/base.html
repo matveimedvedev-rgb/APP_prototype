@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Website Feature Finder{% endblock %}</title>
+    <title>{% block title %}Webglazer{% endblock %}</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -59,7 +59,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>Website Feature Finder</h1>
+        <h1>Webglazer</h1>
         <nav class="nav">
             <a href="{% url 'website_analysis' %}" {% if request.resolver_match.url_name == 'website_analysis' %}class="active"{% endif %}>Website Analysis</a>
             <a href="{% url 'features_table' %}" {% if request.resolver_match.url_name == 'features_table' %}class="active"{% endif %}>Features Table</a>
