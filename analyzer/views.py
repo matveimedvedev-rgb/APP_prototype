@@ -210,7 +210,18 @@ def extract_features_with_openai(website_url, website_text):
         return False, "OpenAI API key not configured. Please set OPENAI_API_KEY in .env file."
     
     try:
-        client = OpenAI(api_key=openai_key)
+        # Remove proxy-related env vars that might interfere with OpenAI client
+        proxy_vars = ['HTTP_PROXY', 'HTTPS_PROXY', 'http_proxy', 'https_proxy']
+        original_proxies = {}
+        for var in proxy_vars:
+            if var in os.environ:
+                original_proxies[var] = os.environ.pop(var)
+        
+        client = OpenAI(api_key=openai_key, timeout=60.0)
+        
+        # Restore proxy vars if they existed
+        for var, value in original_proxies.items():
+            os.environ[var] = value
         
         prompt = f"""Analyze the following website content and extract a concise list of features, capabilities, or key selling points.
 
@@ -405,7 +416,18 @@ def generate_ai_pages_with_openai(website_url, features_list, num_pages=50):
         return False, "OpenAI API key not configured. Please set OPENAI_API_KEY in .env file."
     
     try:
-        client = OpenAI(api_key=openai_key)
+        # Remove proxy-related env vars that might interfere with OpenAI client
+        proxy_vars = ['HTTP_PROXY', 'HTTPS_PROXY', 'http_proxy', 'https_proxy']
+        original_proxies = {}
+        for var in proxy_vars:
+            if var in os.environ:
+                original_proxies[var] = os.environ.pop(var)
+        
+        client = OpenAI(api_key=openai_key, timeout=60.0)
+        
+        # Restore proxy vars if they existed
+        for var, value in original_proxies.items():
+            os.environ[var] = value
         
         features_text = '\n'.join([f"- {f}" for f in features_list[:20]])  # Limit to 20 features
         
@@ -676,7 +698,18 @@ def run_findability_analysis_with_openai(website_url, features_list, ai_pages_li
         return False, "OpenAI API key not configured. Please set OPENAI_API_KEY in .env file."
     
     try:
-        client = OpenAI(api_key=openai_key)
+        # Remove proxy-related env vars that might interfere with OpenAI client
+        proxy_vars = ['HTTP_PROXY', 'HTTPS_PROXY', 'http_proxy', 'https_proxy']
+        original_proxies = {}
+        for var in proxy_vars:
+            if var in os.environ:
+                original_proxies[var] = os.environ.pop(var)
+        
+        client = OpenAI(api_key=openai_key, timeout=60.0)
+        
+        # Restore proxy vars if they existed
+        for var, value in original_proxies.items():
+            os.environ[var] = value
         
         features_text = '\n'.join([f"- {f}" for f in features_list[:30]])  # Limit to 30 features
         
