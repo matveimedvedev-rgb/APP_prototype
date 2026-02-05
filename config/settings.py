@@ -34,6 +34,21 @@ DEBUG = os.getenv('DEBUG', '0') == '1'
 # For production, you can restrict this to specific domains
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',') if os.getenv('ALLOWED_HOSTS') else ['*']
 
+# CSRF settings for Cloud Run
+# Set CSRF_TRUSTED_ORIGINS via environment variable, e.g.:
+# CSRF_TRUSTED_ORIGINS=https://webglazer-prototype-xxxxx-uc.a.run.app
+# Or set it in Cloud Run environment variables after deployment
+CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',') if origin.strip()]
+
+# Security settings for HTTPS (Cloud Run uses HTTPS)
+CSRF_COOKIE_SECURE = True  # Only send CSRF cookie over HTTPS
+CSRF_COOKIE_SAMESITE = 'Lax'  # Allow CSRF cookie in same-site requests
+SESSION_COOKIE_SECURE = True  # Only send session cookie over HTTPS
+SESSION_COOKIE_SAMESITE = 'Lax'
+
+# Trust proxy headers from Cloud Run
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 
 # Application definition
 
@@ -51,7 +66,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    'config.csrf_middleware.CloudRunCsrfMiddleware',  # Custom CSRF middleware for Cloud Run
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
